@@ -162,6 +162,42 @@ ul.tight li{margin:5px 0; font-size:14.5px}
 .ba{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:12px 0}
 @media (max-width:760px){.ba{grid-template-columns:1fr}}
 
+/* ── 擴充模擬：假的聊天視窗 ── */
+.chat{
+  border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:var(--panel); margin:18px 0 0;
+}
+.chat-head{
+  display:flex; align-items:center; gap:7px; padding:10px 14px;
+  background:var(--code); border-bottom:1px solid var(--line);
+}
+.chat-head .dot{width:10px; height:10px; border-radius:50%; background:var(--line)}
+.chat-title{margin-left:8px; font-size:12.5px; color:var(--muted)}
+.chat-body{padding:18px 16px; min-height:70px}
+.bubble{
+  display:inline-block; padding:9px 14px; border-radius:14px 14px 14px 4px;
+  background:var(--code); font-size:14px; color:var(--muted);
+}
+.composer{padding:12px 14px 14px; border-top:1px solid var(--line)}
+.composer textarea{min-height:64px; font-size:13.5px}
+.composer-bar{display:flex; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap}
+.composer-bar .hint{font-size:12.5px; color:var(--muted); flex:1; min-width:180px}
+
+#ext-result{
+  margin-top:16px; padding:14px 16px; border-radius:9px;
+  border:1px solid var(--line); background:var(--panel); font-size:13.5px;
+}
+#ext-result h5{margin:0 0 9px; font-size:14px}
+#ext-result .sent{
+  font-family:ui-monospace,Consolas,monospace; font-size:13px; line-height:1.8;
+  background:var(--code); padding:11px 13px; border-radius:7px;
+  white-space:pre-wrap; word-break:break-word; margin:8px 0;
+}
+#ext-result .verdict{font-size:13px; color:var(--muted); margin:0}
+#ext-result.good{border-left:4px solid var(--low)}
+#ext-result.raw{border-left:4px solid var(--high)}
+#ext-result.cancel{border-left:4px solid var(--muted)}
+
 /* ── 「為什麼沒抓到」說明區 ── */
 #rejects{
   margin:0 0 16px; padding:13px 16px; border-radius:9px;
@@ -299,6 +335,54 @@ footer a{color:var(--accent)}
       查不到對應真值的佔位符一律<b>原樣保留、絕不猜測</b> ——
       雲端 AI 可能自己編出沒發過的佔位符（幻覺），猜測等同於憑空捏造一筆個資塞進使用者的內容裡。
       你可以在上面那段回覆裡亂打一個 <code>[TW_ID_9]</code> 試試看。
+    </p>
+  </div>
+</section>
+
+<section id="ext">
+  <div class="wrap">
+    <h2>載體一：瀏覽器擴充長什麼樣</h2>
+    <p class="sub">
+      上面那段是「把文字丟進去看結果」。但一般使用者真正會碰到的介面長這樣 ——
+      在 ChatGPT 的輸入框裡按右鍵。
+    </p>
+
+    <div class="notice">
+      ✅ <strong>下面那個確認面板是擴充的真品，不是仿製品。</strong>
+      這一段直接 <code>import</code> 了擴充的 <code>content/panel.ts</code> 與
+      <code>masking.ts</code>，流程也照 <code>content/index.ts</code> 走一遍
+      （預覽配號 → 確認面板 → 依勾選結果正式配號 → 插入）。
+      <b>你在這裡按到的，就是裝上擴充後會看到的那個東西。</b>
+    </div>
+
+    <div class="chat">
+      <div class="chat-head">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="chat-title">某 AI 聊天網站</span>
+      </div>
+      <div class="chat-body">
+        <div class="bubble">有什麼可以幫你的嗎？</div>
+      </div>
+      <div class="composer">
+        <textarea id="chat-input" rows="3"></textarea>
+        <div class="composer-bar">
+          <span class="hint" id="chat-hint">↑ 這是你剪貼簿裡的內容，準備貼進去</span>
+          <button class="go" id="btn-ext">🖱 右鍵 → 🛡 隱私處理後貼上</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ext-result" hidden></div>
+
+    <p class="fine">
+      <b>三個刻意的設計：</b>
+      <b>① 每一項都能取消勾選</b> —— 偵測是輔助不是強制，使用者有最終決定權；
+      <b>② 信心值低於 0.7 會特別標紅</b> 提醒「這筆可能是誤判，自己看一眼」；
+      <b>③ 沒偵測到東西時面板完全不跳</b> —— 不打擾是擴充能被長期留著的前提。
+      <br><br>
+      實際的擴充用 <b>Shadow DOM</b> 把面板隔離在宿主網頁之外：
+      ChatGPT、Gemini 這些網站的 global CSS 極具侵略性，不隔離樣式會被洗掉，
+      也可能反過來汙染對方的頁面。
     </p>
   </div>
 </section>
@@ -601,7 +685,88 @@ aider</div>
   </div>
 </footer>
 
-<script>(()=>{var ue=Object.defineProperty;var me=(e,t,n)=>t in e?ue(e,t,{enumerable:!0,configurable:!0,writable:!0,value:n}):e[t]=n;var P=(e,t,n)=>me(e,typeof t!="symbol"?t+"":t,n);function m(e){return e.length>0&&/^[0-9]+$/.test(e)}function E(e,t=""){return new RegExp(`^(?:${e})$`,t)}function p(e,t){if(!e.global)throw new Error(`findIter 需要帶 g 旗標的 RegExp：${e}`);return e.lastIndex=0,[...t.matchAll(e)]}function d(e,t,n,r,o,s){return{start:e,end:t,type:n,text:r,confidence:o,source:"rule",replacement:`[${n}_${s}]`}}var O="sk-ant-[A-Za-z0-9_-]{20,}|sk-proj-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{30,40}|AKIA[0-9A-Z]{16}|AIza[A-Za-z0-9_-]{20,}|xox[a-z]-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+",fe=new RegExp(`(?<![A-Za-z0-9_-])(?:${O})(?![A-Za-z0-9_-])`,"g"),je=E(`(?:${O})`),ge=new RegExp(`\\b(?:API[_-]?KEY|TOKEN|PASSWORD)\\s*=\\s*['"]?([A-Za-z0-9_\\-./+]{6,})['"]?`,"gid");function C(e){let t=[];for(let s of p(fe,e))t.push([s.index,s.index+s[0].length,s[0]]);for(let s of p(ge,e)){let a=s.indices?.[1];a&&t.push([a[0],a[1],s[1]])}t.sort((s,a)=>s[0]-a[0]||a[1]-a[0]-(s[1]-s[0]));let n=[],r=0,o=-1;for(let[s,a,i]of t)s<o||(r+=1,n.push(d(s,a,"API_KEY",i,.9,r)),o=a);return{text:e,spans:n}}function z(e){let t=e.end-e.start,n=e.source==="rule"?0:1;return[-t,-e.confidence,n]}function he(e,t){return e.start<t.end&&t.start<e.end}function Z(e){let t=[...e].sort((r,o)=>{let s=z(r),a=z(o);return s[0]-a[0]||s[1]-a[1]||s[2]-a[2]}),n=[];for(let r of t)n.some(o=>he(r,o))||n.push(r);return n.sort((r,o)=>r.start-o.start||r.end-o.end),n}function W(e){let t=new Map;for(let n of e){let r=(t.get(n.type)??0)+1;t.set(n.type,r),n.replacement=`[${n.type}_${r}]`}return e}var Te=/(?<![A-Za-z0-9])[0-9](?:[ -]?[0-9]){12,18}(?![A-Za-z0-9])/g,ye=/[ -]/g;function xe(e){let t=0,n=[...e].reverse();for(let r=0;r<n.length;r+=1){let o=Number(n[r]);r%2===1&&(o*=2,o>9&&(o-=9)),t+=o}return t%10}function V(e){if(typeof e!="string")return!1;let t=e.trim().replace(ye,"");return!m(t)||t.length<13||t.length>19?!1:xe(t)===0}function K(e){let t=[],n=0;for(let r of p(Te,e)){let o=r[0];V(o)&&(n+=1,t.push(d(r.index,r.index+o.length,"CREDIT_CARD",o,.95,n)))}return{text:e,spans:t}}var j="(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}(?![A-Za-z0-9._%+-])",Ee=new RegExp(j,"g"),Je=E(j);function B(e){let t=[],n=0;for(let r of p(Ee,e)){let o=r[0];n+=1,t.push(d(r.index,r.index+o.length,"EMAIL",o,.95,n))}return{text:e,spans:t}}var F={A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,W:32,X:30,Y:31,Z:33},Ae=[1,9,8,7,6,5,4,3,2,1,1],be=/(?<![A-Za-z0-9])[A-Za-z][0-9]{9}(?![A-Za-z0-9])/g;function A(e){if(typeof e!="string")return!1;let t=e.trim().toUpperCase();if(t.length!==10)return!1;let n=t[0],r=t.slice(1);if(!(n in F)||!m(r))return!1;let o=F[n];return[Math.floor(o/10),o%10,...[...r].map(Number)].reduce((i,l,c)=>i+l*Ae[c],0)%10===0}function G(e){let t=[],n=0;for(let r of p(be,e)){let o=r[0];A(o)&&(n+=1,t.push(d(r.index,r.index+o.length,"TW_ID",o,.99,n)))}return{text:e,spans:t}}var Se=/(?<![A-Za-z0-9])[0-9]{12}(?![A-Za-z0-9])/g;function Y(e){if(typeof e!="string")return!1;let t=e.trim();return t.length===12&&m(t)}function U(e){let t=[],n=0;for(let r of p(Se,e)){let o=r[0];Y(o)&&(n+=1,t.push(d(r.index,r.index+o.length,"TW_NHI",o,.6,n)))}return{text:e,spans:t}}var Re=/(?<![0-9])\(?0[2-8][0-9]{0,2}\)?[-\s]?[0-9]{3,4}-?[0-9]{3,4}(?![0-9])/g,_e=/[()\-\s]/g;function J(e){if(typeof e!="string")return!1;let t=e.trim().replace(_e,"");return!m(t)||t.length<8||t.length>10?!1:t[0]==="0"&&"2345678".includes(t[1])}function X(e){let t=[],n=0;for(let r of p(Re,e)){let o=r[0];J(o)&&(n+=1,t.push(d(r.index,r.index+o.length,"TW_PHONE_L",o,.85,n)))}return{text:e,spans:t}}var we=/(?<![0-9])09[0-9]{2}-?[0-9]{3}-?[0-9]{3}(?![0-9])/g;function b(e){if(typeof e!="string")return!1;let t=e.trim().replaceAll("-","");return t.length!==10||!m(t)?!1:t.startsWith("09")}function q(e){let t=[],n=0;for(let r of p(we,e)){let o=r[0];b(o)&&(n+=1,t.push(d(r.index,r.index+o.length,"TW_PHONE_M",o,.9,n)))}return{text:e,spans:t}}var Q=[1,2,1,2,1,2,4,1],Pe=/(?<![A-Za-z0-9])[0-9]{8}(?![A-Za-z0-9])/g;function ee(e){return e>=10?Math.floor(e/10)+e%10:e}function S(e){if(typeof e!="string")return!1;let t=e.trim();if(t.length!==8||!m(t))return!1;let n=[...t].map(Number),r=n.reduce((o,s,a)=>a===6?o:o+ee(s*Q[a]),0);return n[6]===7?[0,1].some(o=>(r+o)%5===0):(r+ee(n[6]*Q[6]))%5===0}function te(e){let t=[],n=0;for(let r of p(Pe,e)){let o=r[0];S(o)&&(n+=1,t.push(d(r.index,r.index+o.length,"TW_TAX",o,.95,n)))}return{text:e,spans:t}}var Ie=[G,te,U,q,X,B,K,C];function ne(e,t){let n=[];for(let r of Ie)n.push(...r(e).spans);return t&&t.length>0&&(ke(t),n.push(...t)),n=Z(n),n=W(n),{text:e,spans:n,combination_risk:null}}function ke(e){e.forEach((t,n)=>{if(typeof t.confidence!="number"||Number.isNaN(t.confidence))throw new TypeError(`extraSpans[${n}] 缺少有效的 confidence（語意層的 span 必須帶 confidence 與 source，否則 Layer 4 仲裁無法排序）：${JSON.stringify(t)}`);if(t.source!=="rule"&&t.source!=="model")throw new TypeError(`extraSpans[${n}] 的 source 必須是 "rule" 或 "model"，收到：${String(t.source)}`);if(typeof t.start!="number"||typeof t.end!="number"||t.start>=t.end)throw new TypeError(`extraSpans[${n}] 的 start/end 無效（需為字元索引且 start < end）：${JSON.stringify(t)}`)})}var Le=/[^A-Z]+/g,Me="PII";function Ne(e){return String(e??"").toUpperCase().replace(Le,"_").replace(/^_+|_+$/g,"")||Me}function ve(){return{assigned:{},counters:{},updatedAt:Date.now()}}var y=class{constructor(t=ve()){P(this,"assigned");P(this,"counters");this.assigned=new Map(Object.entries(t.assigned)),this.counters=new Map(Object.entries(t.counters))}allocate(t,n){let r=Ne(t),o=`${r}	${n}`,s=this.assigned.get(o);return s===void 0&&(s=(this.counters.get(r)??0)+1,this.counters.set(r,s),this.assigned.set(o,s)),`[${r}_${s}]`}get size(){return this.assigned.size}toState(){return{assigned:Object.fromEntries(this.assigned),counters:Object.fromEntries(this.counters),updatedAt:Date.now()}}},At=12*60*60*1e3;var re={TW_ID:{label:"身分證字號",risk:"high"},TW_TAX:{label:"統一編號",risk:"high"},CREDIT_CARD:{label:"信用卡號",risk:"high"},API_KEY:{label:"API 金鑰 / Token",risk:"high"},TW_NHI:{label:"健保卡號",risk:"medium"},TW_PHONE_M:{label:"手機號碼",risk:"medium"},TW_PHONE_L:{label:"市內電話",risk:"medium"},EMAIL:{label:"電子郵件",risk:"low"},NAME:{label:"人名",risk:"medium"},ADDRESS:{label:"地址 / 地點",risk:"medium"},POSITION:{label:"職稱",risk:"low"},COMPANY:{label:"公司名稱",risk:"low"}};function I(e){return re[e]?.label??e}function k(e){return re[e]?.risk??"medium"}function oe(e,t,n=new y){let r=[...t].sort((l,c)=>l.start-c.start||l.end-c.end),o=r.map(l=>n.allocate(l.type,l.text)),s=e;for(let l=r.length-1;l>=0;l-=1){let c=r[l];s=s.slice(0,c.start)+o[l]+s.slice(c.end)}let a=[],i=new Set;return r.forEach((l,c)=>{let h=o[c];i.has(h)||(i.add(h),a.push({placeholder:h,original:l.text,type:l.type}))}),{maskedText:s,mapping:a}}var de={service:`客服通話紀錄 #20261008-042
+<script>(()=>{var Ne=Object.defineProperty;var $e=(e,t,n)=>t in e?Ne(e,t,{enumerable:!0,configurable:!0,writable:!0,value:n}):e[t]=n;var F=(e,t,n)=>$e(e,typeof t!="symbol"?t+"":t,n);function g(e){return e.length>0&&/^[0-9]+$/.test(e)}function _(e,t=""){return new RegExp(`^(?:${e})$`,t)}function p(e,t){if(!e.global)throw new Error(`findIter 需要帶 g 旗標的 RegExp：${e}`);return e.lastIndex=0,[...t.matchAll(e)]}function u(e,t,n,o,r,i){return{start:e,end:t,type:n,text:o,confidence:r,source:"rule",replacement:`[${n}_${i}]`}}var oe="sk-ant-[A-Za-z0-9_-]{20,}|sk-proj-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{30,40}|AKIA[0-9A-Z]{16}|AIza[A-Za-z0-9_-]{20,}|xox[a-z]-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+",De=new RegExp(`(?<![A-Za-z0-9_-])(?:${oe})(?![A-Za-z0-9_-])`,"g"),ft=_(`(?:${oe})`),He=new RegExp(`\\b(?:API[_-]?KEY|TOKEN|PASSWORD)\\s*=\\s*['"]?([A-Za-z0-9_\\-./+]{6,})['"]?`,"gid");function re(e){let t=[];for(let i of p(De,e))t.push([i.index,i.index+i[0].length,i[0]]);for(let i of p(He,e)){let a=i.indices?.[1];a&&t.push([a[0],a[1],i[1]])}t.sort((i,a)=>i[0]-a[0]||a[1]-a[0]-(i[1]-i[0]));let n=[],o=0,r=-1;for(let[i,a,s]of t)i<r||(o+=1,n.push(u(i,a,"API_KEY",s,.9,o)),r=a);return{text:e,spans:n}}function ie(e){let t=e.end-e.start,n=e.source==="rule"?0:1;return[-t,-e.confidence,n]}function Ce(e,t){return e.start<t.end&&t.start<e.end}function se(e){let t=[...e].sort((o,r)=>{let i=ie(o),a=ie(r);return i[0]-a[0]||i[1]-a[1]||i[2]-a[2]}),n=[];for(let o of t)n.some(r=>Ce(o,r))||n.push(o);return n.sort((o,r)=>o.start-r.start||o.end-r.end),n}function ae(e){let t=new Map;for(let n of e){let o=(t.get(n.type)??0)+1;t.set(n.type,o),n.replacement=`[${n.type}_${o}]`}return e}var ze=/(?<![A-Za-z0-9])[0-9](?:[ -]?[0-9]){12,18}(?![A-Za-z0-9])/g,Oe=/[ -]/g;function Ze(e){let t=0,n=[...e].reverse();for(let o=0;o<n.length;o+=1){let r=Number(n[o]);o%2===1&&(r*=2,r>9&&(r-=9)),t+=r}return t%10}function ce(e){if(typeof e!="string")return!1;let t=e.trim().replace(Oe,"");return!g(t)||t.length<13||t.length>19?!1:Ze(t)===0}function le(e){let t=[],n=0;for(let o of p(ze,e)){let r=o[0];ce(r)&&(n+=1,t.push(u(o.index,o.index+r.length,"CREDIT_CARD",r,.95,n)))}return{text:e,spans:t}}var de="(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}(?![A-Za-z0-9._%+-])",We=new RegExp(de,"g"),Tt=_(de);function pe(e){let t=[],n=0;for(let o of p(We,e)){let r=o[0];n+=1,t.push(u(o.index,o.index+r.length,"EMAIL",r,.95,n))}return{text:e,spans:t}}var ue={A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:34,J:18,K:19,L:20,M:21,N:22,O:35,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,W:32,X:30,Y:31,Z:33},Ke=[1,9,8,7,6,5,4,3,2,1,1],Be=/(?<![A-Za-z0-9])[A-Za-z][0-9]{9}(?![A-Za-z0-9])/g;function P(e){if(typeof e!="string")return!1;let t=e.trim().toUpperCase();if(t.length!==10)return!1;let n=t[0],o=t.slice(1);if(!(n in ue)||!g(o))return!1;let r=ue[n];return[Math.floor(r/10),r%10,...[...o].map(Number)].reduce((s,l,c)=>s+l*Ke[c],0)%10===0}function me(e){let t=[],n=0;for(let o of p(Be,e)){let r=o[0];P(r)&&(n+=1,t.push(u(o.index,o.index+r.length,"TW_ID",r,.99,n)))}return{text:e,spans:t}}var Ve=/(?<![A-Za-z0-9])[0-9]{12}(?![A-Za-z0-9])/g;function fe(e){if(typeof e!="string")return!1;let t=e.trim();return t.length===12&&g(t)}function ge(e){let t=[],n=0;for(let o of p(Ve,e)){let r=o[0];fe(r)&&(n+=1,t.push(u(o.index,o.index+r.length,"TW_NHI",r,.6,n)))}return{text:e,spans:t}}var je=/(?<![0-9])\(?0[2-8][0-9]{0,2}\)?[-\s]?[0-9]{3,4}-?[0-9]{3,4}(?![0-9])/g,Fe=/[()\-\s]/g;function he(e){if(typeof e!="string")return!1;let t=e.trim().replace(Fe,"");return!g(t)||t.length<8||t.length>10?!1:t[0]==="0"&&"2345678".includes(t[1])}function xe(e){let t=[],n=0;for(let o of p(je,e)){let r=o[0];he(r)&&(n+=1,t.push(u(o.index,o.index+r.length,"TW_PHONE_L",r,.85,n)))}return{text:e,spans:t}}var Ge=/(?<![0-9])09[0-9]{2}-?[0-9]{3}-?[0-9]{3}(?![0-9])/g;function L(e){if(typeof e!="string")return!1;let t=e.trim().replaceAll("-","");return t.length!==10||!g(t)?!1:t.startsWith("09")}function ye(e){let t=[],n=0;for(let o of p(Ge,e)){let r=o[0];L(r)&&(n+=1,t.push(u(o.index,o.index+r.length,"TW_PHONE_M",r,.9,n)))}return{text:e,spans:t}}var be=[1,2,1,2,1,2,4,1],Ye=/(?<![A-Za-z0-9])[0-9]{8}(?![A-Za-z0-9])/g;function Te(e){return e>=10?Math.floor(e/10)+e%10:e}function I(e){if(typeof e!="string")return!1;let t=e.trim();if(t.length!==8||!g(t))return!1;let n=[...t].map(Number),o=n.reduce((r,i,a)=>a===6?r:r+Te(i*be[a]),0);return n[6]===7?[0,1].some(r=>(o+r)%5===0):(o+Te(n[6]*be[6]))%5===0}function Ee(e){let t=[],n=0;for(let o of p(Ye,e)){let r=o[0];I(r)&&(n+=1,t.push(u(o.index,o.index+r.length,"TW_TAX",r,.95,n)))}return{text:e,spans:t}}var Ue=[me,Ee,ge,ye,xe,pe,le,re];function G(e,t){let n=[];for(let o of Ue)n.push(...o(e).spans);return t&&t.length>0&&(Je(t),n.push(...t)),n=se(n),n=ae(n),{text:e,spans:n,combination_risk:null}}function Je(e){e.forEach((t,n)=>{if(typeof t.confidence!="number"||Number.isNaN(t.confidence))throw new TypeError(`extraSpans[${n}] 缺少有效的 confidence（語意層的 span 必須帶 confidence 與 source，否則 Layer 4 仲裁無法排序）：${JSON.stringify(t)}`);if(t.source!=="rule"&&t.source!=="model")throw new TypeError(`extraSpans[${n}] 的 source 必須是 "rule" 或 "model"，收到：${String(t.source)}`);if(typeof t.start!="number"||typeof t.end!="number"||t.start>=t.end)throw new TypeError(`extraSpans[${n}] 的 start/end 無效（需為字元索引且 start < end）：${JSON.stringify(t)}`)})}var Xe=/[^A-Z]+/g,qe="PII";function Qe(e){return String(e??"").toUpperCase().replace(Xe,"_").replace(/^_+|_+$/g,"")||qe}function et(){return{assigned:{},counters:{},updatedAt:Date.now()}}var b=class{constructor(t=et()){F(this,"assigned");F(this,"counters");this.assigned=new Map(Object.entries(t.assigned)),this.counters=new Map(Object.entries(t.counters))}allocate(t,n){let o=Qe(t),r=`${o}	${n}`,i=this.assigned.get(r);return i===void 0&&(i=(this.counters.get(o)??0)+1,this.counters.set(o,i),this.assigned.set(r,i)),`[${o}_${i}]`}get size(){return this.assigned.size}toState(){return{assigned:Object.fromEntries(this.assigned),counters:Object.fromEntries(this.counters),updatedAt:Date.now()}}},jt=12*60*60*1e3;var Y={TW_ID:{label:"身分證字號",risk:"high"},TW_TAX:{label:"統一編號",risk:"high"},CREDIT_CARD:{label:"信用卡號",risk:"high"},API_KEY:{label:"API 金鑰 / Token",risk:"high"},TW_NHI:{label:"健保卡號",risk:"medium"},TW_PHONE_M:{label:"手機號碼",risk:"medium"},TW_PHONE_L:{label:"市內電話",risk:"medium"},EMAIL:{label:"電子郵件",risk:"low"},NAME:{label:"人名",risk:"medium"},ADDRESS:{label:"地址 / 地點",risk:"medium"},POSITION:{label:"職稱",risk:"low"},COMPANY:{label:"公司名稱",risk:"low"}};function S(e){return Y[e]?.label??e}function v(e){return Y[e]?.risk??"medium"}function we(e){return e in Y}function U(e,t,n=new b){let o=[...t].sort((l,c)=>l.start-c.start||l.end-c.end),r=o.map(l=>n.allocate(l.type,l.text)),i=e;for(let l=o.length-1;l>=0;l-=1){let c=o[l];i=i.slice(0,c.start)+r[l]+i.slice(c.end)}let a=[],s=new Set;return o.forEach((l,c)=>{let f=r[c];s.has(f)||(s.add(f),a.push({placeholder:f,original:l.text,type:l.type}))}),{maskedText:i,mapping:a}}var tt={high:"高",medium:"中",low:"低"},nt=`
+  :host { all: initial; }
+  * { box-sizing: border-box; font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif; }
+  .backdrop {
+    position: fixed; inset: 0; z-index: 2147483647;
+    background: rgba(15, 23, 42, .45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    width: min(560px, 100%); max-height: min(640px, 90vh);
+    display: flex; flex-direction: column;
+    background: #fff; color: #0f172a;
+    border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,.3);
+    overflow: hidden;
+  }
+  header { padding: 18px 20px 14px; border-bottom: 1px solid #e2e8f0; }
+  h1 { margin: 0 0 4px; font-size: 16px; font-weight: 650; letter-spacing: .01em; }
+  .sub { margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.5; }
+  .list { overflow-y: auto; padding: 8px 12px; flex: 1; }
+  .row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px; border-radius: 9px;
+  }
+  .row + .row { border-top: 1px solid #f1f5f9; }
+  .row:hover { background: #f8fafc; }
+  input[type=checkbox] { margin-top: 3px; width: 15px; height: 15px; accent-color: #2563eb; cursor: pointer; flex: none; }
+  .body { flex: 1; min-width: 0; }
+  .line1 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 3px; }
+  .type { font-size: 13px; font-weight: 600; }
+  .badge { font-size: 10.5px; font-weight: 600; padding: 1.5px 6px; border-radius: 999px; letter-spacing: .03em; }
+  .badge.high { background: #fee2e2; color: #b91c1c; }
+  .badge.medium { background: #fef3c7; color: #b45309; }
+  .badge.low { background: #e0e7ff; color: #4338ca; }
+  .conf { font-size: 11px; color: #94a3b8; }
+  .conf.low-conf { color: #b45309; font-weight: 600; }
+  .line2 { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; color: #475569; word-break: break-all; }
+  .arrow { color: #94a3b8; margin: 0 5px; }
+  .ph { color: #2563eb; font-weight: 600; }
+  footer {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;
+  }
+  .spacer { flex: 1; }
+  button {
+    font-size: 13px; font-weight: 600; padding: 8px 15px;
+    border-radius: 8px; border: 1px solid transparent; cursor: pointer;
+  }
+  .primary { background: #2563eb; color: #fff; }
+  .primary:hover { background: #1d4ed8; }
+  .ghost { background: #fff; color: #334155; border-color: #cbd5e1; }
+  .ghost:hover { background: #f1f5f9; }
+  .link { background: none; color: #64748b; padding: 8px 4px; }
+  .link:hover { color: #0f172a; text-decoration: underline; }
+  .note { font-size: 11.5px; color: #94a3b8; padding: 0 20px 12px; line-height: 1.5; }
+
+  @media (prefers-color-scheme: dark) {
+    .card { background: #1e293b; color: #e2e8f0; }
+    header, footer { border-color: #334155; }
+    footer { background: #172033; }
+    .row + .row { border-color: #263449; }
+    .row:hover { background: #263449; }
+    .line2 { color: #94a3b8; }
+    .ghost { background: #1e293b; color: #cbd5e1; border-color: #475569; }
+    .ghost:hover { background: #334155; }
+  }
+`;function Ae(e,t){return new Promise(n=>{let o=document.createElement("div");o.style.cssText="all: initial; position: fixed; z-index: 2147483647;";let r=o.attachShadow({mode:"closed"}),i=document.createElement("style");i.textContent=nt,r.append(i);let a=document.createElement("div");a.className="backdrop",a.innerHTML=`
+      <div class="card" role="dialog" aria-modal="true" aria-label="敏感資訊確認">
+        <header>
+          <h1>偵測到 ${e.length} 項敏感資訊</h1>
+          <p class="sub">以下內容將在送出前於本地端替換成佔位符。取消勾選的項目會維持原文。</p>
+        </header>
+        <div class="list"></div>
+        <p class="note">分析全程在你的裝置上完成，原文不會離開這台電腦。</p>
+        <footer>
+          <button class="link" data-act="cancel">不貼上</button>
+          <div class="spacer"></div>
+          <button class="ghost" data-act="raw">直接貼上原文</button>
+          <button class="primary" data-act="mask">遮蔽後貼上</button>
+        </footer>
+      </div>
+    `;let s=a.querySelector(".list"),l=[];e.forEach((d,A)=>{let E=v(d.type),k=document.createElement("label");k.className="row";let y=document.createElement("input");y.type="checkbox",y.checked=!0,y.dataset.index=String(A),l.push(y);let z=document.createElement("div");z.className="body";let O=document.createElement("div");O.className="line1";let Z=document.createElement("span");Z.className="type",Z.textContent=we(d.type)?S(d.type):`${d.type}（未知類別）`;let W=document.createElement("span");W.className=`badge ${E}`,W.textContent=`風險 ${tt[E]}`;let K=document.createElement("span");K.className=d.confidence<.7?"conf low-conf":"conf",K.textContent=d.confidence<.7?`信心 ${d.confidence.toFixed(2)}（偏低，請確認）`:`信心 ${d.confidence.toFixed(2)}`,O.append(Z,W,K);let B=document.createElement("div");B.className="line2";let ne=document.createElement("span");ne.textContent=d.text;let V=document.createElement("span");V.className="arrow",V.textContent="→";let j=document.createElement("span");j.className="ph",j.textContent=t[A],B.append(ne,V,j),z.append(O,B),k.append(y,z),s.append(k)});let c=d=>{document.removeEventListener("keydown",f,!0),o.remove(),n(d)},f=d=>{d.key==="Escape"&&(d.preventDefault(),d.stopPropagation(),c({action:"cancel"}))};a.addEventListener("click",d=>{let A=d.target,E=A.dataset?.act;if(E==="cancel")return c({action:"cancel"});if(E==="raw")return c({action:"raw"});if(E==="mask"){let k=l.filter(y=>y.checked).map(y=>e[Number(y.dataset.index)]);return c({action:"mask",spans:k})}if(A===a)return c({action:"cancel"})}),document.addEventListener("keydown",f,!0),r.append(a),document.documentElement.append(o),a.querySelector(".primary")?.focus()})}var Ie={service:`客服通話紀錄 #20261008-042
 來電者：王大明，身分證 A123456789，手機 0912345678
 公司統編 12345675，市話 02-27208889
 電子郵件 wang.daming@example.com.tw
@@ -620,9 +785,11 @@ OPENAI_API_KEY=sk-proj-aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY3zA5bC7dE9fG1hJ3
 姓名,身分證,電話,信箱
 王大明,A123456789,0912345678,wang@example.com
 
-這段匯出程式有 bug，幫我看一下為什麼客戶資料會重複。`},u=e=>document.getElementById(e),x=u("input"),N=u("reply"),se=u("out-orig"),ie=u("out-masked"),_=u("out-restored"),ae=u("detail-table"),ce=u("detail-body"),L=u("detail-empty"),w=new Map;function f(e){return e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}function $e(e,t){let n=[...t].sort((s,a)=>s.start-a.start),r="",o=0;for(let s of n)r+=f(e.slice(o,s.start)),r+=`<mark class="r-${k(s.type)}" title="${f(I(s.type))}">${f(s.text)}</mark>`,o=s.end;return r+=f(e.slice(o)),r}function De(e){return f(e).replace(/\[[A-Z][A-Z_]*_\d+\]/g,t=>`<span class="tok">${t}</span>`)}function He(e,t){let n=[],r=new Set,o=(i,l)=>t.some(c=>i<c.end&&l>c.start),s=(i,l,c="reject")=>{r.has(c+i)||(r.add(c+i),n.push({cand:i,why:l,kind:c}))},a=(i,l)=>{for(let c of e.matchAll(i)){let h=c[2];if(!h||c.index===void 0)continue;let H=c.index+c[1].length;o(H,H+h.length)||l(h)}};return a(/(^|[^A-Za-z0-9])([A-Za-z][0-9]{9})(?![0-9])/g,i=>{A(i)||s(i,"格式像身分證（1 英文字母 + 9 位數字），但<b>檢核碼驗證不通過</b>")}),a(/(^|[^A-Za-z0-9])([A-Za-z][0-9]{3,8})(?![0-9])/g,i=>{s(i,`長度不符：身分證是 1 個英文字母 + <b>9</b> 位數字，這個只有 ${i.length-1} 位`)}),a(/(^|[^0-9])([0-9]{8})(?![0-9])/g,i=>{S(i)||s(i,"符合統一編號的 8 碼長度，但<b>檢核碼驗證不通過</b>")}),a(/(^|[^0-9])(09[0-9]{4,12})(?![0-9])/g,i=>{b(i)||s(i,`09 開頭但長度不符：手機是 09 加 8 位數字（共 <b>10</b> 碼），這個有 ${i.length} 碼`)}),/[一-鿿]/.test(e)&&!t.some(i=>i.source==="model")&&s("人名 / 地址 / 公司名","要靠<b>語意層（L2）的 NER 模型</b>才認得出來，這個網頁只跑規則層。完整版有做，見下方「完整系統還能做什麼」的第 ② 個分頁","info"),n}function le(e,t){let n=document.getElementById("rejects");if(!n)return;if(e.length===0){n.hidden=!0;return}let r=t===0?"這段文字沒有偵測到個資 —— 原因在這裡":"另外有幾個「看起來像、但被擋下來」的字串";n.innerHTML=`<h5>${r}</h5><ul>`+e.map(o=>`<li class="${o.kind==="info"?"info":""}"><span class="cand">${f(o.cand)}</span> <span class="why">${o.why}</span></li>`).join("")+'</ul><p class="punch"><b>這正是本作品與其他工具的差別。</b>Presidio、GLiNER、LLM Guard 都<b>沒有驗證檢核碼</b> —— 任何「1 英文字母 + 9 位數字」的字串都會被它們當成身分證，造成大量誤報。我們會驗，所以不誤報；代價是<b>你得用真的通得過檢核碼的號碼</b>才看得到效果（上面三個範例都是，可以直接點來看）。</p>',n.hidden=!1}function Oe(){let e=[...w.keys()];if(e.length===0)return"";let t=["我看過這份資料了，以下是我的建議：","",...e.slice(0,5).map((n,r)=>`${r+1}. ${n} 屬於敏感欄位，不應以明文儲存或轉傳。`)];return e.length>5&&t.push(`6. 其餘 ${e.length-5} 筆欄位同理。`),t.push("",`整體而言，建議將 ${e[0]} 這類欄位改為雜湊後儲存。`),t.join(`
-`)}function v(){let e=x.value;if(!e.trim()){se.innerHTML='<span style="color:var(--muted)">（還沒有輸入文字）</span>',ie.innerHTML='<span style="color:var(--muted)">（還沒有輸入文字）</span>',_.innerHTML='<span style="color:var(--muted)">（還沒有還原）</span>',ae.hidden=!0,L.hidden=!1,le([],0),N.value="",w=new Map,u("s-count").textContent="0",u("s-types").textContent="0",u("s-time").textContent="0";return}let t=performance.now(),n=ne(e).spans,r=performance.now()-t,o=oe(e,n,new y);w=new Map(o.mapping.map(i=>[i.placeholder,i.original])),se.innerHTML=$e(e,n),ie.innerHTML=De(o.maskedText),le(He(e,n),o.mapping.length),u("s-count").textContent=String(o.mapping.length),u("s-types").textContent=String(new Set(n.map(i=>i.type)).size),u("s-time").textContent=r<1?r.toFixed(2):r.toFixed(1),ce.innerHTML="";let s=new Map(o.mapping.map(i=>[i.original+"	"+i.type,i.placeholder]));for(let i of[...n].sort((l,c)=>l.start-c.start)){let l=document.createElement("tr"),c=k(i.type),h=s.get(i.text+"	"+i.type)??"";l.innerHTML=`<td><b>${f(I(i.type))}</b><br><span style="color:var(--muted);font-size:12px" class="mono">${f(i.type)}</span></td><td class="mono">${f(i.text)}</td><td class="mono"><span class="tok">${f(h)}</span></td><td><span class="pill ${c}">${c==="high"?"高":c==="medium"?"中":"低"}</span></td><td class="mono">${i.start}–${i.end}</td><td>${i.source==="rule"?"規則層 · 檢核碼/格式":"語意層 · 模型"}<br><span style="color:var(--muted);font-size:12px">信心 ${i.confidence.toFixed(2)}</span></td>`,ce.appendChild(l)}let a=n.length>0;ae.hidden=!a,L.hidden=a,a||(L.textContent="這段文字裡沒有偵測到個資。"),N.value=Oe(),_.innerHTML='<span style="color:var(--muted)">（按上面的「還原」按鈕）</span>'}function Ce(){let e=N.value;if(!e.trim()){_.innerHTML='<span style="color:var(--muted)">（上面沒有內容可以還原）</span>';return}let t=0,n=0,r=f(e).replace(/\[[A-Z][A-Z_]*_\d+\]/g,s=>{let a=w.get(s);return a===void 0?(n+=1,`<mark title="查不到對應真值，原樣保留">${s}</mark>`):(t+=1,`<mark class="r-low" title="由 ${s} 還原">${f(a)}</mark>`)}),o=`<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px;font-family:system-ui">還原 ${t} 筆`+(n>0?` ／ <b style="color:var(--high)">${n} 筆查不到，原樣保留</b>`:"")+"</div>";_.innerHTML=o+r}x.addEventListener("input",v);u("btn-restore").addEventListener("click",Ce);document.querySelectorAll(".chip[data-sample]").forEach(e=>{e.addEventListener("click",()=>{let t=e.dataset.sample??"";x.value=t==="clear"?"":de[t]??"",v(),t!=="clear"&&x.scrollIntoView({behavior:"smooth",block:"center"})})});x.value=de.service;v();var pe=Array.from(document.querySelectorAll(".tab[data-tab]"));pe.forEach(e=>{e.addEventListener("click",()=>{let t=e.dataset.tab??"";pe.forEach(n=>{let r=n===e;n.setAttribute("aria-selected",String(r));let o=document.getElementById(`tab-${n.dataset.tab}`);o&&(o.hidden=!r)}),t==="proxy"&&!$&&D()})});var ze=[{text:"$ set PII_ENABLE_NER=0",cls:"cmd",delay:260},{text:"$ .venv\\Scripts\\python.exe -m uvicorn proxy.main:app --port 8010",cls:"cmd",delay:650},{text:""},{text:"12:40:58 [INFO] proxy 啟動",cls:"infoline",delay:90},{text:"上游 base URL：（由 .env 指定）",delay:60},{text:"上游金鑰：已載入（來自 UPSTREAM_API_KEY）",delay:60},{text:"預設模型：gpt-4.1-mini",delay:60},{text:"偵測到但不遮蔽的型別：COMPANY、POSITION",delay:60},{text:"語意層（NER）：未啟用（僅規則層）",delay:60},{text:"組合風險提示：已啟用",delay:60},{text:"對照表閒置逾時：1800 秒",delay:420},{text:"12:40:58 [INFO] 尚未收到任何請求。agent 開始工作後這裡會印一行",cls:"infoline",delay:60},{text:"                「第一個請求已抵達 proxy」；若始終沒出現，代表流量沒有走這裡。",cls:"infoline",delay:900},{text:""},{text:"# ── 另一個終端機：把 Codex 指向 proxy，叫它改一個含個資的檔案 ──",cls:"note",delay:1100},{text:""},{text:"12:41:27 [INFO] 第一個請求已抵達 proxy（POST /responses）—— 流量確實有走這裡",cls:"hit",delay:700},{text:"12:41:27 [INFO] POST /responses -> 200 [SSE] 上游 3135 ms｜遮蔽 5.8 ms｜還原 0 筆",cls:"infoline",delay:850},{text:"12:41:32 [WARNING] 已遮蔽：偵測到 6 筆敏感資訊（TW_ID x3、TW_PHONE_M x3）｜快取命中率 57%",cls:"warnline",delay:950},{text:"12:41:35 [INFO] POST /responses -> 200 [SSE] 上游 3424 ms｜遮蔽 3.8 ms｜還原 9 筆",cls:"infoline",delay:500},{text:"12:41:35 [WARNING] 已遮蔽：偵測到 8 筆敏感資訊（TW_ID x5、TW_PHONE_M x3）｜快取命中率 64%",cls:"warnline",delay:950},{text:"12:41:42 [WARNING] 已遮蔽：偵測到 14 筆敏感資訊（TW_ID x8、TW_PHONE_M x6）｜快取命中率 76%",cls:"warnline",delay:950},{text:"12:41:48 [INFO] POST /responses -> 200 [SSE] 上游 3262 ms｜遮蔽 5.5 ms｜還原 4 筆",cls:"infoline",delay:500},{text:"12:41:49 [WARNING] 已遮蔽：偵測到 15 筆敏感資訊（TW_ID x9、TW_PHONE_M x6）｜快取命中率 81%",cls:"warnline",delay:1100},{text:""},{text:"# ── Codex 完成任務，檔案被正確改好 ──",cls:"note",delay:500},{text:"# 磁碟上的檔案是「真值」，不是 [TW_ID_1] —— 回程還原有做到。",cls:"note",delay:500},{text:"# 整段過程中，雲端 LLM 看到的每一個身分證與電話都是佔位符。",cls:"note"}],g=document.getElementById("term"),T=document.getElementById("btn-play"),R=document.getElementById("play-hint"),$=!1,M=!1,Ze=e=>new Promise(t=>setTimeout(t,e));async function D(){if(!g||M)return;M=!0,$=!0,T&&(T.disabled=!0,T.textContent="播放中⋯⋯"),R&&(R.textContent=""),g.innerHTML="";for(let t of ze){let n=document.createElement("span");t.cls&&(n.className=t.cls),n.textContent=t.text+`
-`,g.appendChild(n),g.scrollTop=g.scrollHeight,await Ze(t.delay??55)}let e=document.createElement("span");e.className="cursor",g.appendChild(e),M=!1,T&&(T.disabled=!1,T.textContent="↻ 重播"),R&&(R.textContent="這是 2026-08-22 的真實執行紀錄")}T?.addEventListener("click",()=>void D());if(g&&"IntersectionObserver"in window){let e=new IntersectionObserver(t=>{for(let n of t)n.isIntersecting&&!$&&(D(),e.disconnect())},{threshold:.35});e.observe(g)}g&&(g.innerHTML='<span class="note">（捲到這裡會自動播放，或按上面的按鈕）</span>');})();
+這段匯出程式有 bug，幫我看一下為什麼客戶資料會重複。`},m=e=>document.getElementById(e),R=m("input"),q=m("reply"),ke=m("out-orig"),Se=m("out-masked"),H=m("out-restored"),ve=m("detail-table"),Re=m("detail-body"),J=m("detail-empty"),C=new Map;function h(e){return e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}function ot(e,t){let n=[...t].sort((i,a)=>i.start-a.start),o="",r=0;for(let i of n)o+=h(e.slice(r,i.start)),o+=`<mark class="r-${v(i.type)}" title="${h(S(i.type))}">${h(i.text)}</mark>`,r=i.end;return o+=h(e.slice(r)),o}function Me(e){return h(e).replace(/\[[A-Z][A-Z_]*_\d+\]/g,t=>`<span class="tok">${t}</span>`)}function rt(e,t){let n=[],o=new Set,r=(s,l)=>t.some(c=>s<c.end&&l>c.start),i=(s,l,c="reject")=>{o.has(c+s)||(o.add(c+s),n.push({cand:s,why:l,kind:c}))},a=(s,l)=>{for(let c of e.matchAll(s)){let f=c[2];if(!f||c.index===void 0)continue;let d=c.index+c[1].length;r(d,d+f.length)||l(f)}};return a(/(^|[^A-Za-z0-9])([A-Za-z][0-9]{9})(?![0-9])/g,s=>{P(s)||i(s,"格式像身分證（1 英文字母 + 9 位數字），但<b>檢核碼驗證不通過</b>")}),a(/(^|[^A-Za-z0-9])([A-Za-z][0-9]{3,8})(?![0-9])/g,s=>{i(s,`長度不符：身分證是 1 個英文字母 + <b>9</b> 位數字，這個只有 ${s.length-1} 位`)}),a(/(^|[^0-9])([0-9]{8})(?![0-9])/g,s=>{I(s)||i(s,"符合統一編號的 8 碼長度，但<b>檢核碼驗證不通過</b>")}),a(/(^|[^0-9])(09[0-9]{4,12})(?![0-9])/g,s=>{L(s)||i(s,`09 開頭但長度不符：手機是 09 加 8 位數字（共 <b>10</b> 碼），這個有 ${s.length} 碼`)}),/[一-鿿]/.test(e)&&!t.some(s=>s.source==="model")&&i("人名 / 地址 / 公司名","要靠<b>語意層（L2）的 NER 模型</b>才認得出來，這個網頁只跑規則層。完整版有做，見下方「完整系統還能做什麼」的第 ② 個分頁","info"),n}function _e(e,t){let n=document.getElementById("rejects");if(!n)return;if(e.length===0){n.hidden=!0;return}let o=t===0?"這段文字沒有偵測到個資 —— 原因在這裡":"另外有幾個「看起來像、但被擋下來」的字串";n.innerHTML=`<h5>${o}</h5><ul>`+e.map(r=>`<li class="${r.kind==="info"?"info":""}"><span class="cand">${h(r.cand)}</span> <span class="why">${r.why}</span></li>`).join("")+'</ul><p class="punch"><b>這正是本作品與其他工具的差別。</b>Presidio、GLiNER、LLM Guard 都<b>沒有驗證檢核碼</b> —— 任何「1 英文字母 + 9 位數字」的字串都會被它們當成身分證，造成大量誤報。我們會驗，所以不誤報；代價是<b>你得用真的通得過檢核碼的號碼</b>才看得到效果（上面三個範例都是，可以直接點來看）。</p>',n.hidden=!1}function it(){let e=[...C.keys()];if(e.length===0)return"";let t=["我看過這份資料了，以下是我的建議：","",...e.slice(0,5).map((n,o)=>`${o+1}. ${n} 屬於敏感欄位，不應以明文儲存或轉傳。`)];return e.length>5&&t.push(`6. 其餘 ${e.length-5} 筆欄位同理。`),t.push("",`整體而言，建議將 ${e[0]} 這類欄位改為雜湊後儲存。`),t.join(`
+`)}function Q(){let e=R.value;if(!e.trim()){ke.innerHTML='<span style="color:var(--muted)">（還沒有輸入文字）</span>',Se.innerHTML='<span style="color:var(--muted)">（還沒有輸入文字）</span>',H.innerHTML='<span style="color:var(--muted)">（還沒有還原）</span>',ve.hidden=!0,J.hidden=!1,_e([],0),q.value="",C=new Map,m("s-count").textContent="0",m("s-types").textContent="0",m("s-time").textContent="0";return}let t=performance.now(),n=G(e).spans,o=performance.now()-t,r=U(e,n,new b);C=new Map(r.mapping.map(s=>[s.placeholder,s.original])),ke.innerHTML=ot(e,n),Se.innerHTML=Me(r.maskedText),_e(rt(e,n),r.mapping.length),m("s-count").textContent=String(r.mapping.length),m("s-types").textContent=String(new Set(n.map(s=>s.type)).size),m("s-time").textContent=o<1?o.toFixed(2):o.toFixed(1),Re.innerHTML="";let i=new Map(r.mapping.map(s=>[s.original+"	"+s.type,s.placeholder]));for(let s of[...n].sort((l,c)=>l.start-c.start)){let l=document.createElement("tr"),c=v(s.type),f=i.get(s.text+"	"+s.type)??"";l.innerHTML=`<td><b>${h(S(s.type))}</b><br><span style="color:var(--muted);font-size:12px" class="mono">${h(s.type)}</span></td><td class="mono">${h(s.text)}</td><td class="mono"><span class="tok">${h(f)}</span></td><td><span class="pill ${c}">${c==="high"?"高":c==="medium"?"中":"低"}</span></td><td class="mono">${s.start}–${s.end}</td><td>${s.source==="rule"?"規則層 · 檢核碼/格式":"語意層 · 模型"}<br><span style="color:var(--muted);font-size:12px">信心 ${s.confidence.toFixed(2)}</span></td>`,Re.appendChild(l)}let a=n.length>0;ve.hidden=!a,J.hidden=a,a||(J.textContent="這段文字裡沒有偵測到個資。"),q.value=it(),H.innerHTML='<span style="color:var(--muted)">（按上面的「還原」按鈕）</span>'}function st(){let e=q.value;if(!e.trim()){H.innerHTML='<span style="color:var(--muted)">（上面沒有內容可以還原）</span>';return}let t=0,n=0,o=h(e).replace(/\[[A-Z][A-Z_]*_\d+\]/g,i=>{let a=C.get(i);return a===void 0?(n+=1,`<mark title="查不到對應真值，原樣保留">${i}</mark>`):(t+=1,`<mark class="r-low" title="由 ${i} 還原">${h(a)}</mark>`)}),r=`<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px;font-family:system-ui">還原 ${t} 筆`+(n>0?` ／ <b style="color:var(--high)">${n} 筆查不到，原樣保留</b>`:"")+"</div>";H.innerHTML=r+o}R.addEventListener("input",Q);m("btn-restore").addEventListener("click",st);document.querySelectorAll(".chip[data-sample]").forEach(e=>{e.addEventListener("click",()=>{let t=e.dataset.sample??"";R.value=t==="clear"?"":Ie[t]??"",Q(),t!=="clear"&&R.scrollIntoView({behavior:"smooth",block:"center"})})});R.value=Ie.service;Q();var w=document.getElementById("chat-input"),D=document.getElementById("btn-ext"),M=document.getElementById("ext-result"),Pe=document.getElementById("chat-hint"),at=`幫我看一下這段客訴怎麼回比較好：
+客戶王大明（身分證 A123456789）說他的信用卡 4111111111111111 被重複扣款，
+聯絡電話 0912345678，公司統編 12345675。`;w&&(w.value=at);function N(e,t,n,o){M&&(M.className=e,M.innerHTML=`<h5>${t}</h5>`+(n===null?"":`<div class="sent">${Me(n)}</div>`)+`<p class="verdict">${o}</p>`,M.hidden=!1)}async function ct(){if(!w||!D)return;let e=w.value;if(!e.trim())return;let t=G(e).spans;if(t.length===0){N("cancel","面板沒有跳出來",null,"這段文字沒有偵測到任何個資，擴充直接把原文貼上、不打擾你。<b>不該跳的時候不跳</b>，跟該跳的時候要跳一樣重要。");return}let n=new b,o=t.map(c=>n.allocate(c.type,c.text));D.disabled=!0;let r;try{r=await Ae(t,o)}finally{D.disabled=!1}if(r.action==="cancel"){N("cancel","你選了「不貼上」—— 什麼都沒有送出去",null,"輸入框維持原狀，原文也沒有離開你的電腦。");return}if(r.action==="raw"){w.value=e,N("raw","你選了「直接貼上原文」—— 個資會原封不動送進雲端",e,"⚠️ 擴充不會攔住你 —— <b>使用者有最終決定權</b>，這是刻意的。但上面這些內容會原文進入雲端模型的上下文。");return}let i=new b,{maskedText:a,mapping:s}=U(e,r.spans,i);w.value=a,Pe&&(Pe.textContent="↑ 輸入框裡的內容已被替換");let l=t.length-r.spans.length;N("good",`已遮蔽 ${s.length} 筆後貼進輸入框`,a,`這就是雲端 AI 會看到的內容。對照表（${s.length} 筆）只存在你的瀏覽器裡，絕不外傳。`+(l>0?` <b>你取消勾選了 ${l} 項</b>，那些維持原文送出。`:""))}D?.addEventListener("click",()=>void ct());var Le=Array.from(document.querySelectorAll(".tab[data-tab]"));Le.forEach(e=>{e.addEventListener("click",()=>{let t=e.dataset.tab??"";Le.forEach(n=>{let o=n===e;n.setAttribute("aria-selected",String(o));let r=document.getElementById(`tab-${n.dataset.tab}`);r&&(r.hidden=!o)}),t==="proxy"&&!ee&&te()})});var lt=[{text:"$ set PII_ENABLE_NER=0",cls:"cmd",delay:260},{text:"$ .venv\\Scripts\\python.exe -m uvicorn proxy.main:app --port 8010",cls:"cmd",delay:650},{text:""},{text:"12:40:58 [INFO] proxy 啟動",cls:"infoline",delay:90},{text:"上游 base URL：（由 .env 指定）",delay:60},{text:"上游金鑰：已載入（來自 UPSTREAM_API_KEY）",delay:60},{text:"預設模型：gpt-4.1-mini",delay:60},{text:"偵測到但不遮蔽的型別：COMPANY、POSITION",delay:60},{text:"語意層（NER）：未啟用（僅規則層）",delay:60},{text:"組合風險提示：已啟用",delay:60},{text:"對照表閒置逾時：1800 秒",delay:420},{text:"12:40:58 [INFO] 尚未收到任何請求。agent 開始工作後這裡會印一行",cls:"infoline",delay:60},{text:"                「第一個請求已抵達 proxy」；若始終沒出現，代表流量沒有走這裡。",cls:"infoline",delay:900},{text:""},{text:"# ── 另一個終端機：把 Codex 指向 proxy，叫它改一個含個資的檔案 ──",cls:"note",delay:1100},{text:""},{text:"12:41:27 [INFO] 第一個請求已抵達 proxy（POST /responses）—— 流量確實有走這裡",cls:"hit",delay:700},{text:"12:41:27 [INFO] POST /responses -> 200 [SSE] 上游 3135 ms｜遮蔽 5.8 ms｜還原 0 筆",cls:"infoline",delay:850},{text:"12:41:32 [WARNING] 已遮蔽：偵測到 6 筆敏感資訊（TW_ID x3、TW_PHONE_M x3）｜快取命中率 57%",cls:"warnline",delay:950},{text:"12:41:35 [INFO] POST /responses -> 200 [SSE] 上游 3424 ms｜遮蔽 3.8 ms｜還原 9 筆",cls:"infoline",delay:500},{text:"12:41:35 [WARNING] 已遮蔽：偵測到 8 筆敏感資訊（TW_ID x5、TW_PHONE_M x3）｜快取命中率 64%",cls:"warnline",delay:950},{text:"12:41:42 [WARNING] 已遮蔽：偵測到 14 筆敏感資訊（TW_ID x8、TW_PHONE_M x6）｜快取命中率 76%",cls:"warnline",delay:950},{text:"12:41:48 [INFO] POST /responses -> 200 [SSE] 上游 3262 ms｜遮蔽 5.5 ms｜還原 4 筆",cls:"infoline",delay:500},{text:"12:41:49 [WARNING] 已遮蔽：偵測到 15 筆敏感資訊（TW_ID x9、TW_PHONE_M x6）｜快取命中率 81%",cls:"warnline",delay:1100},{text:""},{text:"# ── Codex 完成任務，檔案被正確改好 ──",cls:"note",delay:500},{text:"# 磁碟上的檔案是「真值」，不是 [TW_ID_1] —— 回程還原有做到。",cls:"note",delay:500},{text:"# 整段過程中，雲端 LLM 看到的每一個身分證與電話都是佔位符。",cls:"note"}],x=document.getElementById("term"),T=document.getElementById("btn-play"),$=document.getElementById("play-hint"),ee=!1,X=!1,dt=e=>new Promise(t=>setTimeout(t,e));async function te(){if(!x||X)return;X=!0,ee=!0,T&&(T.disabled=!0,T.textContent="播放中⋯⋯"),$&&($.textContent=""),x.innerHTML="";for(let t of lt){let n=document.createElement("span");t.cls&&(n.className=t.cls),n.textContent=t.text+`
+`,x.appendChild(n),x.scrollTop=x.scrollHeight,await dt(t.delay??55)}let e=document.createElement("span");e.className="cursor",x.appendChild(e),X=!1,T&&(T.disabled=!1,T.textContent="↻ 重播"),$&&($.textContent="這是 2026-08-22 的真實執行紀錄")}T?.addEventListener("click",()=>void te());if(x&&"IntersectionObserver"in window){let e=new IntersectionObserver(t=>{for(let n of t)n.isIntersecting&&!ee&&(te(),e.disconnect())},{threshold:.35});e.observe(x)}x&&(x.innerHTML='<span class="note">（捲到這裡會自動播放，或按上面的按鈕）</span>');})();
 </script>
 </body>
 </html>
